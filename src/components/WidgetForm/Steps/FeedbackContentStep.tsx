@@ -1,7 +1,9 @@
 import { ArrowLeft } from "phosphor-react";
 import { FormEvent, useState } from "react";
 import { FeedbackType, feedbackTypes } from "..";
+import { api } from "../../../lib/api";
 import { CloseButton } from "../../CloseButton";
+import { Loading } from "../../Loading";
 import { ScreenShotButton } from "../ScreenShotButton";
 
 interface FeedbackContentStepProps {
@@ -17,10 +19,20 @@ export function FeedbackContentStep({
 }: FeedbackContentStepProps) {
   const [screenshot, setScreenshot] = useState<string | null>(null);
   const [comment, setComment] = useState("");
+  const [isSendFeedback, setIsSendFeedback] = useState(false);
 
-  function handleSubmitFeedback(event: FormEvent) {
+  async function handleSubmitFeedback(event: FormEvent) {
     event.preventDefault();
-    console.log({ feedbackType, comment, screenshot });
+    setIsSendFeedback(true);
+
+    await api.post("/feedbacks", {
+      type: feedbackType,
+      comment,
+      screenshot,
+    });
+
+    setIsSendFeedback(false);
+
     onFeedbackSent();
   }
 
@@ -58,10 +70,10 @@ export function FeedbackContentStep({
           />
           <button
             type="submit"
-            disabled={comment.length === 0}
+            disabled={comment.length === 0 || isSendFeedback}
             className="transition focus:outline-none focus:ring-2 focus:ring-offset-2 dark:ring-offset-surface-primary-dark ring-offset-surface-primary focus:ring-brand p-2 bg-brand hover:bg-brand-hover rounded-s2 border border-transparent text-primary-dark font-bold  px-4 flex-1 flex justify-center items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-brand"
           >
-            Enviar feedback
+            {isSendFeedback ? <Loading /> : "Enviar feedback"}
           </button>
         </footer>
       </form>
